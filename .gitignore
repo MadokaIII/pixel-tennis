@@ -1,0 +1,4 @@
+# Zig Build System
+zig-cache/
+zig-out/
+
