@@ -52,16 +52,14 @@ pub fn main() anyerror!void {
         //--------------------------------------------------------------------------------------
         var player = rl.Rectangle.init(@divTrunc(screenWidth, 5) - 5, @divExact(screenHeight, 2) - 30, 10, 60);
         var misunderstoodBot = rl.Rectangle.init((@divTrunc(screenWidth, 5) * 4) - 5, @divExact(screenHeight, 2) - 30, 10, 60);
-        var ball = rl.Rectangle.init(@divExact(screenWidth, 2) - 5, @divExact(screenHeight, 2) - 5, 10, 10);
-        var ballVector = rl.Vector2.init(0, 0);
-        var rotation = @as(f32, 1.0);
+        var ball = rl.Rectangle.init(0, 0, 10, 10);
+        var rotation = 0;
 
         // Main game loop
         while (!rl.windowShouldClose()) { // Detect window close button or ESC key
             // Update
             //----------------------------------------------------------------------------------
-            ballVector.x += 5;
-            ballVector.y += 2.5;
+
             //----------------------------------------------------------------------------------
 
             // Draw
@@ -74,7 +72,7 @@ pub fn main() anyerror!void {
             rl.drawRectangle(@divExact(screenWidth, 2) - 5, 0, 10, screenHeight, rl.Color.white);
             rl.drawRectangleRec(player, rl.Color.blue);
             rl.drawRectangleRec(misunderstoodBot, rl.Color.gray);
-            rl.drawRectanglePro(ball, ballVector, rotation, rl.Color.red);
+            rl.drawRectanglePro(ball, @as(rl.Vector2, .{ @divExact(screenWidth, 2), @divExact(screenHeight, 2) }), rotation, rl.Color.red);
             //----------------------------------------------------------------------------------
 
             // Logic
