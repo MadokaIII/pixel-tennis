@@ -1,2 +1,2 @@
-# Pong
-Trying to develop Pong in Zig using raylib-zig
+# Ping-Pong
+Trying to develop Ping-Pong in Zig using raylib-zig
