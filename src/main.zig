@@ -2,7 +2,7 @@ const std = @import("std");
 const rl = @import("raylib");
 const screenWidth = 1280;
 const screenHeight = 720;
-const title = "Ping-Pong";
+const title = "Pixel Tennis";
 
 pub fn getCenteredxPos(text: [:0]const u8, fontSize: i32) i32 {
     const textSize = rl.measureText(text, fontSize);
