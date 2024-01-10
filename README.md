@@ -1,2 +1,2 @@
-# Ping-Pong
-Trying to develop Ping-Pong in Zig using raylib-zig
+# Pixel Tennis
+Trying to develop a simulation of Ping-pong in Zig using raylib-zig
