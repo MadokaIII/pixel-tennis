@@ -3,10 +3,15 @@ const rl = @import("raylib");
 const screenWidth = 1280;
 const screenHeight = 720;
 const title = "Pixel Tennis";
+const origin = rl.Vector2.init(@divExact(screenWidth, 2), @divExact(screenHeight, 2));
 
 pub fn getCenteredxPos(text: [:0]const u8, fontSize: i32) i32 {
     const textSize = rl.measureText(text, fontSize);
     return @divFloor((screenWidth - textSize), 2);
+}
+
+pub fn ballPhysics(ball: rl.Vector2, player: rl.Rectangle) rl.Vector2 {
+    return rl.Vector2.init(if (ball.x > player.x) 5 else -5, if (ball.y > player.y) 2.5 else -2.5);
 }
 
 pub fn menu() bool {
@@ -50,16 +55,17 @@ pub fn main() anyerror!void {
 
         rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
         //--------------------------------------------------------------------------------------
-        var player = rl.Rectangle.init(@divTrunc(screenWidth, 5) - 5, @divExact(screenHeight, 2) - 30, 10, 60);
-        var misunderstoodBot = rl.Rectangle.init((@divTrunc(screenWidth, 5) * 4) - 5, @divExact(screenHeight, 2) - 30, 10, 60);
-        var ball = rl.Rectangle.init(0, 0, 10, 10);
-        var rotation = 0;
+        var player = rl.Rectangle.init(@divTrunc(screenWidth, 5) - 5, origin.y - 30, 10, 60);
+        var misunderstoodBot = rl.Rectangle.init((@divTrunc(screenWidth, 5) * 4) - 5, origin.y - 30, 10, 60);
+        var ball = rl.Vector2.init(origin.x, origin.y);
+        var ballVector = rl.Vector2.init(5, 2.5);
 
         // Main game loop
         while (!rl.windowShouldClose()) { // Detect window close button or ESC key
             // Update
             //----------------------------------------------------------------------------------
-
+            ball.x -= ballVector.x;
+            ball.y -= ballVector.y;
             //----------------------------------------------------------------------------------
 
             // Draw
@@ -72,7 +78,7 @@ pub fn main() anyerror!void {
             rl.drawRectangle(@divExact(screenWidth, 2) - 5, 0, 10, screenHeight, rl.Color.white);
             rl.drawRectangleRec(player, rl.Color.blue);
             rl.drawRectangleRec(misunderstoodBot, rl.Color.gray);
-            rl.drawRectanglePro(ball, @as(rl.Vector2, .{ @divExact(screenWidth, 2), @divExact(screenHeight, 2) }), rotation, rl.Color.red);
+            rl.drawCircleV(ball, 5, rl.Color.red);
             //----------------------------------------------------------------------------------
 
             // Logic
@@ -83,8 +89,9 @@ pub fn main() anyerror!void {
             if (rl.isKeyDown(rl.KeyboardKey.key_down)) {
                 player.y += 10;
             }
-            if (rl.checkCollisionRecs(ball, player)) {
-                rotation += 90;
+            if (rl.checkCollisionPointRec(ball, player)) {
+                std.debug.print("Detected\n", .{});
+                ballVector = ballPhysics(ball, player);
             }
             //----------------------------------------------------------------------------------
         }
