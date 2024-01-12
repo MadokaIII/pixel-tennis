@@ -10,8 +10,8 @@ pub fn getCenteredxPos(text: [:0]const u8, fontSize: i32) i32 {
     return @divFloor((screenWidth - textSize), 2);
 }
 
-pub fn ballPhysics(ball: rl.Vector2, player: rl.Rectangle) rl.Vector2 {
-    return rl.Vector2.init(if (ball.x > player.x) 5 else -5, if (ball.y > player.y) 2.5 else -2.5);
+pub fn ballPhysics(ball: rl.Vector2, ballVector: rl.Vector2, object: rl.Rectangle) rl.Vector2 {
+    return rl.Vector2.init(if (ball.x > object.x) -ballVector.x else ballVector.x, 0);
 }
 
 pub fn menu() bool {
@@ -65,7 +65,6 @@ pub fn main() anyerror!void {
             // Update
             //----------------------------------------------------------------------------------
             ball.x -= ballVector.x;
-            ball.y -= ballVector.y;
             //----------------------------------------------------------------------------------
 
             // Draw
@@ -89,9 +88,11 @@ pub fn main() anyerror!void {
             if (rl.isKeyDown(rl.KeyboardKey.key_down)) {
                 player.y += 10;
             }
-            if (rl.checkCollisionPointRec(ball, player)) {
-                std.debug.print("Detected\n", .{});
-                ballVector = ballPhysics(ball, player);
+            if (rl.checkCollisionCircleRec(ball, 5, player)) {
+                ballVector = ballPhysics(ball, ballVector, player);
+            }
+            if (rl.checkCollisionCircleRec(ball, 5, misunderstoodBot)) {
+                ballVector = ballPhysics(ball, ballVector, misunderstoodBot);
             }
             //----------------------------------------------------------------------------------
         }
