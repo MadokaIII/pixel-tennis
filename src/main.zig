@@ -1,70 +1,48 @@
 const std = @import("std");
 const rl = @import("raylib");
-const screenWidth = 1280;
-const screenHeight = 720;
-const title = "Pixel Tennis";
-const origin = rl.Vector2.init(@divExact(screenWidth, 2), @divExact(screenHeight, 2));
-
-pub fn getCenteredxPos(text: [:0]const u8, fontSize: i32) i32 {
-    const textSize = rl.measureText(text, fontSize);
-    return @divFloor((screenWidth - textSize), 2);
-}
-
-pub fn ballPhysics(ball: rl.Vector2, ballVector: rl.Vector2, object: rl.Rectangle) rl.Vector2 {
-    return rl.Vector2.init(if (ball.x > object.x) -ballVector.x else ballVector.x, 0);
-}
-
-pub fn menu() bool {
-    const play = "Press ENTER to launch Game";
-    var enterPressed = false;
-
-    rl.initWindow(screenWidth, screenHeight, title);
-    defer rl.closeWindow(); // Close window and OpenGL context
-
-    rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
-
-    // Main menu loop
-    while (!rl.windowShouldClose()) {
-        // Draw
-        //----------------------------------------------------------------------------------
-        rl.beginDrawing();
-        defer rl.endDrawing();
-
-        rl.clearBackground(rl.Color.black);
-
-        rl.drawText(title, getCenteredxPos(title, 100), 150, 100, rl.Color.white);
-        rl.drawText(play, getCenteredxPos(play, 40), 380, 40, rl.Color.white);
-        //----------------------------------------------------------------------------------
-        // Check for Enter key
-        if (rl.isKeyPressed(rl.KeyboardKey.key_enter)) {
-            enterPressed = true;
-            break; // Exit the loop if Enter is pressed
-        }
-    }
-    return enterPressed;
-}
+const mn = @import("menu.zig");
+const Cons = @import("constants.zig");
 
 pub fn main() anyerror!void {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const startGame = menu();
+    const startGame = mn.menu();
     if (startGame) {
-        rl.initWindow(screenWidth, screenHeight, title);
+        rl.initWindow(Cons.ScreenWidth, Cons.ScreenHeight, Cons.Title);
         defer rl.closeWindow(); // Close window and OpenGL context
 
         rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
         //--------------------------------------------------------------------------------------
-        var player = rl.Rectangle.init(@divTrunc(screenWidth, 5) - 5, origin.y - 30, 10, 60);
-        var misunderstoodBot = rl.Rectangle.init((@divTrunc(screenWidth, 5) * 4) - 5, origin.y - 30, 10, 60);
-        var ball = rl.Vector2.init(origin.x, origin.y);
+        const topBorder = rl.Rectangle.init(0, 1, Cons.ScreenWidth, 10);
+        const bottomBorder = rl.Rectangle.init(0, Cons.ScreenHeight - 11, Cons.ScreenWidth, 10);
+        var player = rl.Rectangle.init(100 - 5, Cons.Origin.y - 30, 10, 60);
+        var playerHeightVar: f32 = 0;
+        var misunderstoodBot = rl.Rectangle.init(Cons.ScreenWidth - 100 - 5, Cons.Origin.y - 30, 10, 60);
+        var ball = rl.Vector2.init(Cons.Origin.x, Cons.Origin.y);
         var ballVector = rl.Vector2.init(5, 2.5);
 
         // Main game loop
         while (!rl.windowShouldClose()) { // Detect window close button or ESC key
-            // Update
+            // Logic
             //----------------------------------------------------------------------------------
-            ball.x -= ballVector.x;
+            if (rl.isKeyPressed(rl.KeyboardKey.key_up)) {
+                playerHeightVar = 10;
+            }
+            if (rl.isKeyPressed(rl.KeyboardKey.key_down)) {
+                playerHeightVar = -10;
+            }
+            if (rl.isKeyUp(rl.KeyboardKey.key_up) and (rl.isKeyUp(rl.KeyboardKey.key_down)) or
+                rl.checkCollisionRecs(player, bottomBorder) and playerHeightVar == -10 or
+                rl.checkCollisionRecs(player, topBorder) and playerHeightVar == 10)
+            {
+                playerHeightVar = 0;
+            }
+            if (rl.checkCollisionCircleRec(ball, 5, player) or rl.checkCollisionCircleRec(ball, 5, misunderstoodBot)) {
+                ballVector.x = -ballVector.x;
+            }
+            if (rl.checkCollisionCircleRec(ball, 5, topBorder) or rl.checkCollisionCircleRec(ball, 5, bottomBorder)) {
+                ballVector.y = -ballVector.y;
+            }
             //----------------------------------------------------------------------------------
 
             // Draw
@@ -74,26 +52,21 @@ pub fn main() anyerror!void {
 
             rl.clearBackground(rl.Color.black);
 
-            rl.drawRectangle(@divExact(screenWidth, 2) - 5, 0, 10, screenHeight, rl.Color.white);
+            rl.drawRectangle(0, 0, Cons.ScreenWidth, 10, rl.Color.white);
+            rl.drawRectangle(0, Cons.ScreenHeight - 10, Cons.ScreenWidth, 10, rl.Color.white);
+            rl.drawRectangle(@divExact(Cons.ScreenWidth, 2) - 5, 10, 10, Cons.ScreenHeight - 20, rl.Color.white);
+
             rl.drawRectangleRec(player, rl.Color.blue);
             rl.drawRectangleRec(misunderstoodBot, rl.Color.gray);
+
             rl.drawCircleV(ball, 5, rl.Color.red);
             //----------------------------------------------------------------------------------
 
-            // Logic
+            // Update
             //----------------------------------------------------------------------------------
-            if (rl.isKeyDown(rl.KeyboardKey.key_up)) {
-                player.y -= 10;
-            }
-            if (rl.isKeyDown(rl.KeyboardKey.key_down)) {
-                player.y += 10;
-            }
-            if (rl.checkCollisionCircleRec(ball, 5, player)) {
-                ballVector = ballPhysics(ball, ballVector, player);
-            }
-            if (rl.checkCollisionCircleRec(ball, 5, misunderstoodBot)) {
-                ballVector = ballPhysics(ball, ballVector, misunderstoodBot);
-            }
+            player.y -= playerHeightVar;
+            ball.x -= ballVector.x;
+            ball.y -= ballVector.y;
             //----------------------------------------------------------------------------------
         }
     }
