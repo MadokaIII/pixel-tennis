@@ -1,4 +1,4 @@
 # Zig Build System
-zig-cache/
+.zig-cache/
 zig-out/
 
